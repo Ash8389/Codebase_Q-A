@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: query-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - StripPrefix=1
+
+        - id: ingest-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/ingest/**
+          filters:
+            - StripPrefix=1

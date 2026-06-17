@@ -1,0 +1,83 @@
+package com.example.query_service.service;
+
+import com.example.query_service.config.ChatAssistant;
+import com.example.query_service.dtos.Citation;
+import com.example.query_service.dtos.LlmServiceResponse;
+import com.example.query_service.dtos.ScoredChunk;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.model.output.Response;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class LlmService {
+    private final ChatAssistant chatAssistant;
+
+    public LlmServiceResponse llmCall(String sessionID, String question, List<ScoredChunk> chunks) {
+
+        StringBuilder context = new StringBuilder();
+        for(int i = 0; i< chunks.size(); i++) {
+            ScoredChunk c = chunks.get(i);
+            context.append("[CHUNK ").append(i + 1).append("]\n")
+                    .append("File: ").append(c.filePath())
+                    .append(" | Lines: ").append(c.startLine())
+                    .append("-").append(c.endLine()).append("\n")
+                    .append(c.content())
+                    .append("\n\n");
+        }
+
+        String prompt = """
+            You are a code assistant. Answer the question using ONLY the
+            code chunks provided below. Be concise and technical.
+
+            After your answer, on a new line write:
+            CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
+
+            CODE CHUNKS:
+            %s
+
+            QUESTION: %s
+            """.formatted(context.toString(), question);
+
+        Response<AiMessage> result = chatAssistant.answer(sessionID ,prompt);
+
+        System.out.println(result.tokenUsage().totalTokenCount());
+
+        return parseCitation(result.content().text(), chunks);
+    }
+
+    private LlmServiceResponse parseCitation(String result, List<ScoredChunk> chunks) {
+        int citationIndex = result.lastIndexOf("CITATIONS:");
+        String answer = result.substring(0, citationIndex);
+        List<Integer> usedChunkIndex = new ArrayList<>();
+
+        if(citationIndex != -1) {
+            String indexLine = result.substring(citationIndex+10).trim();
+
+            Arrays.stream(indexLine.split(","))
+                    .map(String::trim)
+                    .filter(s -> s.matches("\\d+"))
+                    .map(Integer::parseInt)
+                    .filter(n -> n >= 1 && n <= chunks.size())
+                    .forEach(n -> usedChunkIndex.add(n - 1));
+        }
+
+        List<Citation> citations = usedChunkIndex.stream()
+                .map(i -> new Citation(
+                        chunks.get(i).filePath(),
+                        chunks.get(i).startLine(),
+                        chunks.get(i).endLine(),
+                        chunks.get(i).score()
+                        )
+                ).toList();
+
+        return new LlmServiceResponse(answer, citations);
+    }
+}
