@@ -6,9 +6,16 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
+	<parent>
+		<groupId>com.example</groupId>
+		<artifactId>codebase-qa-parent</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
 	<groupId>com.example</groupId>
 	<artifactId>common-dto</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>common-dto</name>
