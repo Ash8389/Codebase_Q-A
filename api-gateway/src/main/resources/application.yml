@@ -10,7 +10,7 @@ spring:
             - StripPrefix=1
 
         - id: ingest-service
-          uri: ${INGEST_SERVICE_URL:http://localhost:8082}
+          uri: ${INGEST_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/ingest/**
           filters:

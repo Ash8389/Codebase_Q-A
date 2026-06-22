@@ -35,9 +35,13 @@ public class LlmService {
 
         log.debug("context : {}", context);
 
-        String prompt = """
-            You are a code assistant. Answer the question using ONLY the
-            code chunks provided below. Be concise and technical.
+        String prompt = """  
+            You are a code assistant. You will be given code snippets as context.
+            Answer the question clearly and concisely based only on the provided context.
+            - Use proper formatting
+            - Explain code in plain English
+            - Use code blocks for any code references
+            - Do not guess if the context doesn't contain the answer
 
             After your answer, on a new line write:
             CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]

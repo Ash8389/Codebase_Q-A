@@ -108,8 +108,8 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-local}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092 # ← service name, not localhost
       # JWT_SECRET: ${JWT_SECRET}
-#    tmpfs:
-#      - /tmp/coderag:size=512m
+    #    tmpfs:
+    #      - /tmp/coderag:size=512m
     depends_on:
       kafka:
         condition: service_healthy
