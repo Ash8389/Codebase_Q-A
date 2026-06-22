@@ -49,7 +49,7 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            dockerfile: api-Gateway/Dockerfile
+            dockerfile: api-gateway/Dockerfile
           - service: ingestion-service
             dockerfile: ingestion-service/Dockerfile
           - service: embedding-service
