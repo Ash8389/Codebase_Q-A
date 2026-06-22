@@ -1,12 +1,8 @@
 package com.example.ingest_service.controller;
 
 import com.example.ingest_service.services.IngestionService;
-import lombok.RequiredArgsConstructor;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -18,8 +14,8 @@ public class IngestController {
         this.ingestionService = ingestionService;
     }
 
-    @GetMapping
-    public void get(@RequestParam("q") String uri) throws GitAPIException, IOException {
+    @PostMapping("uri")
+    public void ingest(@RequestParam("q") String uri) throws GitAPIException, IOException {
         ingestionService.ingest(uri);
     }
 }

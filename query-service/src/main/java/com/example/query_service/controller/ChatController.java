@@ -16,7 +16,7 @@ public class ChatController {
 
     private final ChatService  chatService;
 
-    @PostMapping
+    @PostMapping("query")
     public ResponseEntity<QueryResponse> chat(@RequestBody RequestQuery requestQuery,
                                               @RequestHeader("X-Session-Id") String sessionID) throws ExecutionException, InterruptedException {
         return  ResponseEntity.ok(chatService.chat(sessionID ,requestQuery.question(), requestQuery.namespace()));

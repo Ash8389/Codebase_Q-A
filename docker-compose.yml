@@ -81,9 +81,10 @@ services:
   # ═══════════════════════════════════════
 
   api-gateway:
-    build:
-      context: .
-      dockerfile: api-Gateway/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: api-Gateway/Dockerfile
+    image: ash270/coderag-api-gateway:latest
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -98,9 +99,10 @@ services:
     # it just routes requests to downstream services
 
   ingestion-service:
-    build:
-      context: .
-      dockerfile: ingestion-service/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: ingestion-service/Dockerfile
+    image: ash270/coderag-ingestion-service:latest
     container_name: ingestion-service
     ports:
       - "8081:8081"
@@ -117,9 +119,10 @@ services:
     restart: on-failure
 
   embedding-service:
-    build:
-      context: .
-      dockerfile: embedding-service/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: embedding-service/Dockerfile
+    image: ash270/coderag-embedding-service:latest
     container_name: embedding-service
     ports:
       - "8082:8082"
@@ -138,9 +141,10 @@ services:
     restart: on-failure
 
   query-service:
-    build:
-      context: .
-      dockerfile: query-service/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: query-service/Dockerfile
+    image: ash270/coderag-query-service:latest
     container_name: query-service
     ports:
       - "8083:8083"

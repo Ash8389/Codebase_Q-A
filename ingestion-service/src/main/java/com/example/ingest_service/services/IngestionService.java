@@ -31,6 +31,10 @@ public class IngestionService {
     }
 
     public void ingest(String uri) throws GitAPIException, IOException {
+        if(!uri.contains(".git")) {
+            uri = uri + ".git";
+        }
+
         Path path = pullRepoService.cloneRepo(uri);
         List<Path> supportedFiles = pullRepoService.supportedFiles(path);
 
