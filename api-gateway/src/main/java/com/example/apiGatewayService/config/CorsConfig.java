@@ -13,7 +13,9 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:5173");  // Vite dev server
+        config.addAllowedOrigin(
+                "https://codebase-q-a-frontend.vercel.app"
+        );
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
