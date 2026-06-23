@@ -4,6 +4,7 @@ import com.example.query_service.dtos.LlmServiceResponse;
 import com.example.query_service.dtos.QueryResponse;
 import com.example.query_service.dtos.ScoredChunk;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ChatService {
@@ -33,7 +35,7 @@ public class ChatService {
         LlmServiceResponse cached = redisTemplate.opsForValue().get(cacheKey);
 
         if(cached != null) {
-            System.out.println("From cache");
+
             return new QueryResponse(
                     cached.answer(),
                     cached.citations(),
@@ -43,6 +45,8 @@ public class ChatService {
         }
 
         List<ScoredChunk> chunks = chunkRetriever.retriever(question, namespace);
+
+        log.debug("Chunks is size: {}", chunks.size());
 
         LlmServiceResponse llmServiceResponse = llmService.llmCall(sessionID, question, chunks);
 
@@ -56,8 +60,7 @@ public class ChatService {
         );
     }
 
-
-
+    
     private String buildCacheKey(String question, String namespace){
         String raw = namespace + ":" + question.toLowerCase().trim();
 

@@ -33,8 +33,6 @@ public class LlmService {
                     .append("\n\n");
         }
 
-        log.debug("Chunks is size: {}", chunks.size());
-
         String prompt = """  
             You are a code assistant. You will be given code snippets as context.
             Answer the question clearly and concisely based only on the provided context.

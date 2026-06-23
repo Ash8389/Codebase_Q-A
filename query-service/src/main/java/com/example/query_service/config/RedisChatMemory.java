@@ -8,6 +8,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RedisChatMemory implements ChatMemoryStore {
@@ -31,6 +33,7 @@ public class RedisChatMemory implements ChatMemoryStore {
         String stored = redisTemplate.opsForValue().get(redisKey);
 
         if(stored == null || stored.isBlank()){
+            log.debug("-----------------------Empty List-------------------------");
             return new ArrayList<>();
         }
 
