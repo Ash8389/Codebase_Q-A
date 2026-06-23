@@ -7,8 +7,8 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 
 public interface ChatAssistant {
-    @SystemMessage("""
-        You are a code assistant. You will be given code snippets as context.
-    """)
-    Response<AiMessage> answer(@MemoryId String sessionID, @UserMessage String question);
+//    @SystemMessage("""
+//
+//    """)
+    String answer(@MemoryId String sessionID, @UserMessage String question);
 }

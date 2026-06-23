@@ -36,6 +36,7 @@ public class LlmService {
         log.debug("_____________________________Chunks________________________{}",chunks);
 
         String prompt = """ 
+            You are a code assistant. You will be given code snippets as context.
             Answer the question clearly and concisely based only on the provided context.
             - Use proper formatting
             - Explain code in plain English
@@ -49,9 +50,9 @@ public class LlmService {
             QUESTION: %s
             """.formatted(context.toString(), question);
 
-        Response<AiMessage> result = chatAssistant.answer(sessionID ,prompt);
+        String result = chatAssistant.answer(sessionID ,prompt);
 
-        return parseCitation(result.content().text(), chunks);
+        return parseCitation(result, chunks);
     }
 
     private LlmServiceResponse parseCitation(String result, List<ScoredChunk> chunks) {
