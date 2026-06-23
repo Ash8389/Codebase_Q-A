@@ -33,7 +33,7 @@ public class LlmService {
                     .append("\n\n");
         }
 
-        log.debug("_____________________________Chunks________________________{}",chunks);
+        log.debug("_____________________________Context________________________{}",context);
 
         String prompt = """ 
             You are a code assistant. You will be given code snippets as context.
