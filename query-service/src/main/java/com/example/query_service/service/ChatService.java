@@ -60,7 +60,7 @@ public class ChatService {
         );
     }
 
-    
+
     private String buildCacheKey(String question, String namespace){
         String raw = namespace + ":" + question.toLowerCase().trim();
 

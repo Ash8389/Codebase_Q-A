@@ -44,6 +44,8 @@ public class RedisChatMemory implements ChatMemoryStore {
                     .map(this::toMessage)
                     .filter(Objects::nonNull)
                     .toList();
+            if(messages.isEmpty())
+                log.debug("------------------------------------------Empty Message------------------------------");
 
             return messages;
         } catch (JsonProcessingException e) {
