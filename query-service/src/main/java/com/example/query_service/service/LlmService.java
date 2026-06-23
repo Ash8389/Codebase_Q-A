@@ -47,6 +47,9 @@ public class LlmService {
 
     private LlmServiceResponse parseCitation(String result, List<ScoredChunk> chunks) {
         int citationIndex = result.lastIndexOf("CITATIONS:");
+        if(citationIndex == -1) {
+            return new LlmServiceResponse(result, List.of());
+        }
         String answer = result.substring(0, citationIndex);
         List<Integer> usedChunkIndex = new ArrayList<>();
 
