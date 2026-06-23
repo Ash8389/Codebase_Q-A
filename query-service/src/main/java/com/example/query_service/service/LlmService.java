@@ -33,7 +33,7 @@ public class LlmService {
                     .append("\n\n");
         }
 
-        log.debug("context : {}", context);
+        log.debug("Chunks is size: {}", chunks.size());
 
         String prompt = """  
             You are a code assistant. You will be given code snippets as context.
@@ -51,8 +51,6 @@ public class LlmService {
 
             QUESTION: %s
             """.formatted(context.toString(), question);
-
-        log.debug("Prompt : {}", prompt);
 
         Response<AiMessage> result = chatAssistant.answer(sessionID ,prompt);
 

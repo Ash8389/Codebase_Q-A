@@ -1,13 +1,11 @@
 package com.example.query_service.config;
 
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenizer;
 import dev.langchain4j.service.AiServices;
 import lombok.RequiredArgsConstructor;
-import opennlp.tools.tokenize.Tokenizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,14 +41,14 @@ public class ChatModelConfig {
     ){
         return AiServices.builder(ChatAssistant.class)
                 .chatLanguageModel(chatLanguageModel)
-//                .chatMemoryProvider(memoryID ->
-//                        TokenWindowChatMemory
-//                                .builder()
-//                                .id(memoryID)
-//                                .chatMemoryStore(redisChatMemory)
-//                                .maxTokens(2000, new OpenAiTokenizer())
-//                                .build()
-//                )
+                .chatMemoryProvider(memoryID ->
+                        TokenWindowChatMemory
+                                .builder()
+                                .id(memoryID)
+                                .chatMemoryStore(redisChatMemory)
+                                .maxTokens(2000, new OpenAiTokenizer())
+                                .build()
+                )
                 .build();
     }
 }
