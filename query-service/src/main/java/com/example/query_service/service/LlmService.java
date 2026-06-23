@@ -36,9 +36,13 @@ public class LlmService {
         log.debug("_____________________________Chunks________________________{}",chunks);
 
         String prompt = """ 
+            Answer the question clearly and concisely based only on the provided context.
+            - Use proper formatting
+            - Explain code in plain English
+            - Use code blocks for any code references
+            - Do not guess if the context doesn't contain the answer
             After your answer, on a new line write:
             CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
-            
             CODE CHUNKS:
             %s
 
