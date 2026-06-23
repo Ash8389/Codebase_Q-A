@@ -43,14 +43,14 @@ public class ChatModelConfig {
     ){
         return AiServices.builder(ChatAssistant.class)
                 .chatLanguageModel(chatLanguageModel)
-                .chatMemoryProvider(memoryID ->
-                        TokenWindowChatMemory
-                                .builder()
-                                .id(memoryID)
-                                .chatMemoryStore(redisChatMemory)
-                                .maxTokens(2000, new OpenAiTokenizer())
-                                .build()
-                )
+//                .chatMemoryProvider(memoryID ->
+//                        TokenWindowChatMemory
+//                                .builder()
+//                                .id(memoryID)
+//                                .chatMemoryStore(redisChatMemory)
+//                                .maxTokens(2000, new OpenAiTokenizer())
+//                                .build()
+//                )
                 .build();
     }
 }
