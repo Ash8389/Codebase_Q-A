@@ -12,7 +12,7 @@ import java.util.UUID;
 @Component
 public class DocumentChunker {
     private static final int CHUNK_WORD_SIZE = 400;
-    private static final int OVERLAP_SIZE = 30;
+    private static final int OVERLAP_SIZE = 25;
 
     public List<CodeChunk> splitter(String content, String filename, String namespace) {
         String[] words = content.split("\\s+");
@@ -40,7 +40,7 @@ public class DocumentChunker {
                             .startLine(startLine)
                             .endLine(endLine)
                             .chunkType(filename.substring(filename.lastIndexOf('.')))
-                            .content(content)
+                            .content(chunkText)
                             .build()
             );
 

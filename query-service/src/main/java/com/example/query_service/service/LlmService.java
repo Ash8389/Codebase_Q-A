@@ -25,6 +25,9 @@ public class LlmService {
         StringBuilder context = new StringBuilder();
         for(int i = 0; i< chunks.size(); i++) {
             ScoredChunk c = chunks.get(i);
+
+            log.debug("Score: {}---Context: {}", c.score(), c.content());
+
             context.append("[CHUNK ").append(i + 1).append("]\n")
                     .append("File: ").append(c.filePath())
                     .append(" | Lines: ").append(c.startLine())
@@ -33,32 +36,34 @@ public class LlmService {
                     .append("\n\n");
         }
 
-        log.debug("_____________________________Context________________________{}",context);
-
         String prompt = """ 
             You are a code assistant. You will be given code snippets as context.
             Answer the question clearly and concisely based only on the provided context.
-            - Use proper formatting
-            - Explain code in plain English
-            - Use code blocks for any code references
-            - Do not guess if the context doesn't contain the answer
+            If context not provided then say "I don't have answer. May be question is not from the Repo.".
+            
+            - Use proper formatting.
+            - Explain code in plain English.
+            - Use code blocks for code reference.
             After your answer, on a new line write:
             CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
+            
             CODE CHUNKS:
             %s
 
             QUESTION: %s
             """.formatted(context.toString(), question);
 
-        String result = chatAssistant.answer(sessionID ,prompt);
+        String result = chatAssistant.answer(sessionID ,prompt).content().text();
 
         return parseCitation(result, chunks);
     }
 
     private LlmServiceResponse parseCitation(String result, List<ScoredChunk> chunks) {
         int citationIndex = result.lastIndexOf("CITATIONS:");
+
+        log.debug("------------RESULT: -----------------{}----------------------------------", result);
+
         if(citationIndex == -1) {
-            log.debug("------------citationIndex == -1-----------------{}----------------------------------", result);
             return new LlmServiceResponse(result, List.of());
         }
         String answer = result.substring(0, citationIndex);

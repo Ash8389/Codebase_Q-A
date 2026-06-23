@@ -43,6 +43,7 @@ public class CodeChunkRetriever {
                         Points.SearchPoints.newBuilder()
                                 .setCollectionName("code_chunks")
                                 .setFilter(filter)
+                                .setScoreThreshold((float)0.5)
                                 .setLimit(TOP_K)
                                 .addAllVector(toFloatList(vec))
                                 .setWithPayload(Points.WithPayloadSelector.newBuilder().setEnable(true).build())

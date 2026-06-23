@@ -10,5 +10,5 @@ public interface ChatAssistant {
 //    @SystemMessage("""
 //
 //    """)
-    String answer(@MemoryId String sessionID, @UserMessage String question);
+    Response<AiMessage> answer(@MemoryId String sessionID, @UserMessage String question);
 }

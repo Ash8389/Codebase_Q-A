@@ -44,12 +44,10 @@ public class JavaAstChunker implements CodeChunker{
         List<CodeChunk> chunks = new ArrayList<>();
         collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, CHUNK_NODE_TYPES, "METHOD");
 
-        if(chunks.isEmpty()) {
-            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, FALLBACK_NODE_TYPES, "CLASS");
-        }
+        collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, FALLBACK_NODE_TYPES, "CLASS");
 
         if(chunks.isEmpty()) {
-//            System.out.println(filePath + " : " + content);
+            System.out.println(filePath + " : " + content);
             return fallbackToSlidingWindow(content, filePath, nameSpace);
         }
 
