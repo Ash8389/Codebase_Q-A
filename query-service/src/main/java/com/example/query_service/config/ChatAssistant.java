@@ -7,13 +7,16 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 
 public interface ChatAssistant {
-//    @SystemMessage("""
-//    You are a code assistant. You will be given code snippets as context.
-//    Answer the question clearly and concisely based only on the provided context.
-//    - Use proper formatting
-//    - Explain code in plain English
-//    - Use code blocks for any code references
-//    - Do not guess if the context doesn't contain the answer
-//    """)
+    @SystemMessage("""
+        You are a code assistant. You will be given code snippets as context.
+        Answer the question clearly and concisely based only on the provided context.
+        - Use proper formatting
+        - Explain code in plain English
+        - Use code blocks for any code references
+        - Do not guess if the context doesn't contain the answer
+
+        After your answer, on a new line write:
+        CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
+    """)
     Response<AiMessage> answer(@MemoryId String sessionID, @UserMessage String question);
 }
