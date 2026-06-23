@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,6 @@ public class RedisChatMemory implements ChatMemoryStore {
         String stored = redisTemplate.opsForValue().get(redisKey);
 
         if(stored == null || stored.isBlank()){
-            log.debug("-----------------------Empty List-------------------------");
             return new ArrayList<>();
         }
 
@@ -44,8 +44,6 @@ public class RedisChatMemory implements ChatMemoryStore {
                     .map(this::toMessage)
                     .filter(Objects::nonNull)
                     .toList();
-            if(messages.isEmpty())
-                log.debug("------------------------------------------Empty Message------------------------------");
 
             return messages;
         } catch (JsonProcessingException e) {
@@ -82,6 +80,7 @@ public class RedisChatMemory implements ChatMemoryStore {
         return switch (type) {
             case "USER" -> UserMessage.from(text);
             case "AI" -> AiMessage.from(text);
+            case "SYSTEM" -> SystemMessage.from(text);
             default -> null;
         };
     }
