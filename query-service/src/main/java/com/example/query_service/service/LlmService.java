@@ -34,6 +34,9 @@ public class LlmService {
         }
 
         String prompt = """ 
+            After your answer, on a new line write:
+            CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
+            
             CODE CHUNKS:
             %s
 
@@ -48,6 +51,7 @@ public class LlmService {
     private LlmServiceResponse parseCitation(String result, List<ScoredChunk> chunks) {
         int citationIndex = result.lastIndexOf("CITATIONS:");
         if(citationIndex == -1) {
+            log.debug("------------citationIndex == -1-----------------{}----------------------------------", result);
             return new LlmServiceResponse(result, List.of());
         }
         String answer = result.substring(0, citationIndex);

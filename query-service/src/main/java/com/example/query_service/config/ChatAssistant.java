@@ -14,9 +14,6 @@ public interface ChatAssistant {
         - Explain code in plain English
         - Use code blocks for any code references
         - Do not guess if the context doesn't contain the answer
-
-        After your answer, on a new line write:
-        CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
     """)
     Response<AiMessage> answer(@MemoryId String sessionID, @UserMessage String question);
 }
