@@ -33,6 +33,8 @@ public class LlmService {
                     .append("\n\n");
         }
 
+        log.debug("_____________________________Chunks________________________{}",chunks);
+
         String prompt = """ 
             After your answer, on a new line write:
             CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]

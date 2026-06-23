@@ -46,8 +46,6 @@ public class ChatService {
 
         List<ScoredChunk> chunks = chunkRetriever.retriever(question, namespace);
 
-        log.debug("Chunks is size: {}", chunks.size());
-
         LlmServiceResponse llmServiceResponse = llmService.llmCall(sessionID, question, chunks);
 
         redisTemplate.opsForValue().set(cacheKey, llmServiceResponse, Duration.ofMinutes(REDIS_CACHE_TTL));
