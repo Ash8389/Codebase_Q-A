@@ -33,7 +33,11 @@ public class RedisChatMemory implements ChatMemoryStore {
         String redisKey = memoryKey((String) memoryID);
         String stored = redisTemplate.opsForValue().get(redisKey);
 
+        log.info("Loading memory: {}", memoryID);
+        log.info("Stored value: {}", stored);
+
         if(stored == null || stored.isBlank()){
+            log.info("Returning EMPTY memory");
             return new ArrayList<>();
         }
 

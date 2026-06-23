@@ -1,10 +1,12 @@
 package com.example.query_service.config;
 
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenizer;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +32,10 @@ public class ChatModelConfig {
                 .baseUrl(url)
                 .apiKey(api)
                 .modelName(model)
+                .logRequests(true)
+                .logResponses(true)
                 .maxTokens(600)
-                .temperature(0.2)
+                .temperature(0.5)
                 .build();
     }
 
@@ -42,11 +46,11 @@ public class ChatModelConfig {
         return AiServices.builder(ChatAssistant.class)
                 .chatLanguageModel(chatLanguageModel)
                 .chatMemoryProvider(memoryID ->
-                        TokenWindowChatMemory
+                                MessageWindowChatMemory
                                 .builder()
                                 .id(memoryID)
                                 .chatMemoryStore(redisChatMemory)
-                                .maxTokens(2000, new OpenAiTokenizer())
+                                        .maxMessages(5)
                                 .build()
                 )
                 .build();

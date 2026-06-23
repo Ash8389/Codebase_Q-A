@@ -5,6 +5,8 @@ import com.example.query_service.dtos.Citation;
 import com.example.query_service.dtos.LlmServiceResponse;
 import com.example.query_service.dtos.ScoredChunk;
 import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.model.Tokenizer;
+import dev.langchain4j.model.openai.OpenAiTokenizer;
 import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,20 +22,34 @@ import java.util.List;
 public class LlmService {
     private final ChatAssistant chatAssistant;
 
+    private final int MAX_TOKEN = 2500;
+
     public LlmServiceResponse llmCall(String sessionID, String question, List<ScoredChunk> chunks) {
 
+        OpenAiTokenizer tokenizer = new OpenAiTokenizer();
         StringBuilder context = new StringBuilder();
+        int currentTokenCount = 0;
         for(int i = 0; i< chunks.size(); i++) {
             ScoredChunk c = chunks.get(i);
 
-            log.debug("Score: {}---Context: {}", c.score(), c.content());
+//            log.debug("Score: {}---Context: {}", c.score(), c.content());
 
-            context.append("[CHUNK ").append(i + 1).append("]\n")
+            StringBuilder currentChunk = new StringBuilder();
+            currentChunk.append("[CHUNK ").append(i + 1).append("]\n")
                     .append("File: ").append(c.filePath())
                     .append(" | Lines: ").append(c.startLine())
                     .append("-").append(c.endLine()).append("\n")
                     .append(c.content())
                     .append("\n\n");
+
+            int chunkToken = tokenizer.estimateTokenCountInText(String.valueOf(currentChunk));
+            if(currentTokenCount + chunkToken > MAX_TOKEN) {
+                break;
+            }
+
+            currentTokenCount += chunkToken;
+
+            context.append(currentChunk);
         }
 
         String prompt = """ 
@@ -53,7 +69,9 @@ public class LlmService {
             QUESTION: %s
             """.formatted(context.toString(), question);
 
-        String result = chatAssistant.answer(sessionID ,prompt).content().text();
+//        log.debug("#################################\nPROMPT: {}\n#################################", prompt);
+
+        String result = chatAssistant.answer(sessionID ,prompt);
 
         return parseCitation(result, chunks);
     }
@@ -61,7 +79,7 @@ public class LlmService {
     private LlmServiceResponse parseCitation(String result, List<ScoredChunk> chunks) {
         int citationIndex = result.lastIndexOf("CITATIONS:");
 
-        log.debug("------------RESULT: -----------------{}----------------------------------", result);
+//        log.debug("------------RESULT: -----------------{}----------------------------------", result);
 
         if(citationIndex == -1) {
             return new LlmServiceResponse(result, List.of());
