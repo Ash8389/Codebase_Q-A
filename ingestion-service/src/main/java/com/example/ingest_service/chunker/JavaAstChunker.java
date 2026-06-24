@@ -72,21 +72,17 @@ public class JavaAstChunker implements CodeChunker{
             int start = node.getStartByte();
             int end = node.getEndByte();
 
-            if (start < 0 || end > sourceBytes.length || start >= end) {
-                log.info(
-                        "Invalid node: {} start={} end={} sourceLength={} file={}",
-                        node.getType(),
-                        start,
-                        end,
-                        sourceBytes.length,
-                        filePath
-                );
+            start = Math.max(0, start);
+            end = Math.min(end, sourceBytes.length);
+
+            if (start >= end) {
+                return;
             }
 
             String chunkContent = new String(
                     sourceBytes,
-                    node.getStartByte(),
-                    node.getEndByte()- node.getStartByte(),
+                    start,
+                    end - start,
                     StandardCharsets.UTF_8
             );
 
