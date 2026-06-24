@@ -30,7 +30,7 @@ public class IngestionService {
         this.kafkaServices = kafkaServices;
     }
 
-    public void ingest(String uri) throws GitAPIException, IOException {
+    public String ingest(String uri) throws GitAPIException, IOException {
         if(!uri.contains(".git")) {
             uri = uri + ".git";
         }
@@ -65,6 +65,8 @@ public class IngestionService {
         }
 
         FileSystemUtils.deleteRecursively(path.toFile());
+
+        return "Ingestion Done";
     }
 }
 
