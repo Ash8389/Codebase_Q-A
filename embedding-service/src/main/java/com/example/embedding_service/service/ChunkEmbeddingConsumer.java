@@ -66,8 +66,7 @@ public class ChunkEmbeddingConsumer {
                     "startLine",  value(chunk.startLine()),
                     "endLine",    value(chunk.endLine()),
                     "chunkType",  value(chunk.chunkType()),
-                    "content",    value(chunk.content()),
-                    "ingestedAt", value(Math.toIntExact(System.currentTimeMillis()))
+                    "content",    value(chunk.content())
             );
 
             points.add(
