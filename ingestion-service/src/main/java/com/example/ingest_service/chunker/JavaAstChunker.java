@@ -73,8 +73,8 @@ public class JavaAstChunker implements CodeChunker{
             int end = node.getEndByte();
 
             if (start < 0 || end > sourceBytes.length || start >= end) {
-                System.out.printf(
-                        "Invalid node: %s start=%d end=%d sourceLength=%d file=%s%n",
+                log.info(
+                        "Invalid node: {} start={} end={} sourceLength={} file={}",
                         node.getType(),
                         start,
                         end,
