@@ -45,11 +45,10 @@ public class ChunkEmbeddingConsumer {
 
     private void qDrantEmbedAndStore(List<CodeChunkEvent> chunkEventBatch) {
 
-        deleteNamespaceExist(chunkEventBatch.getFirst().namespace());
-
         List<String> text = chunkEventBatch.stream()
                 .map(CodeChunkEvent::prefixedContent)
                 .toList();
+        deleteNamespaceExist(chunkEventBatch.get(0).namespace());
 
         List<Embedding> embeddings = embeddingModel.embedAll(
                 text.stream()
