@@ -2,6 +2,7 @@ package com.example.ingest_service.chunker;
 
 import com.example.ingest_service.dtos.CodeChunk;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.treesitter.TSNode;
 import org.treesitter.TSParser;
@@ -13,6 +14,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class JavaAstChunker implements CodeChunker{
@@ -66,6 +68,20 @@ public class JavaAstChunker implements CodeChunker{
                                Set<String> targetTypes, String chunkType) {
 
         if(targetTypes.contains(node.getType())) {
+
+            int start = node.getStartByte();
+            int end = node.getEndByte();
+
+            if (start < 0 || end > sourceBytes.length || start >= end) {
+                System.out.printf(
+                        "Invalid node: %s start=%d end=%d sourceLength=%d file=%s%n",
+                        node.getType(),
+                        start,
+                        end,
+                        sourceBytes.length,
+                        filePath
+                );
+            }
 
             String chunkContent = new String(
                     sourceBytes,
