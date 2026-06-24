@@ -6,6 +6,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 @Configuration
 public class CorsConfig {
 
@@ -15,6 +17,9 @@ public class CorsConfig {
         config.setAllowCredentials(true);
         config.addAllowedOrigin(
                 "https://codebase-q-a-frontend.vercel.app"
+        );
+        config.addAllowedOrigin(
+                "https://codebase-q-a-frontend-streaming.vercel.app"
         );
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
