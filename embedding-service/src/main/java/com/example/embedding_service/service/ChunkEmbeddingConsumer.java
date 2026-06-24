@@ -48,7 +48,6 @@ public class ChunkEmbeddingConsumer {
         List<String> text = chunkEventBatch.stream()
                 .map(CodeChunkEvent::prefixedContent)
                 .toList();
-        deleteNamespaceExist(chunkEventBatch.get(0).namespace());
 
         List<Embedding> embeddings = embeddingModel.embedAll(
                 text.stream()
@@ -67,7 +66,8 @@ public class ChunkEmbeddingConsumer {
                     "startLine",  value(chunk.startLine()),
                     "endLine",    value(chunk.endLine()),
                     "chunkType",  value(chunk.chunkType()),
-                    "content",    value(chunk.content())
+                    "content",    value(chunk.content()),
+                    "ingestedAt", value(Math.toIntExact(System.currentTimeMillis()))
             );
 
             points.add(
@@ -97,32 +97,6 @@ public class ChunkEmbeddingConsumer {
     }
     private JsonWithInt.Value value(int n){
         return JsonWithInt.Value.newBuilder().setIntegerValue(n).build();
-    }
-
-    public void deleteNamespaceExist(String namespace){
-
-        try{
-            qdrantClient.deleteAsync(COLLECTION,
-                    Points.Filter.newBuilder()
-                            .addMust(
-                                    Points.Condition.newBuilder()
-                                            .setField(
-                                                    Points.FieldCondition.newBuilder()
-                                                            .setKey("namespace")
-                                                            .setMatch(
-                                                                    Points.Match.newBuilder()
-                                                                            .setKeyword(namespace)
-                                                                            .build()
-                                                            )
-                                                            .build()
-                                            )
-                                            .build()
-                            )
-                            .build()
-            ).get();
-        } catch (RuntimeException | InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

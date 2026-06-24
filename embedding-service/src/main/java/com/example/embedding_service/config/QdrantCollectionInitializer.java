@@ -40,6 +40,11 @@ public class QdrantCollectionInitializer implements ApplicationRunner {
                     COLLECTION_NAME, "chunkType",
                     Collections.PayloadSchemaType.Keyword, null, true, null, null
             ).get();
+
+            qdrantClient.createPayloadIndexAsync(
+                    COLLECTION_NAME, "ingestedAt",
+                    Collections.PayloadSchemaType.Integer, null, true, null, null
+            ).get();
         }
     }
 }
