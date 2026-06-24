@@ -4,10 +4,9 @@ import com.example.query_service.config.ChatAssistant;
 import com.example.query_service.dtos.Citation;
 import com.example.query_service.dtos.LlmServiceResponse;
 import com.example.query_service.dtos.ScoredChunk;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.model.Tokenizer;
-import dev.langchain4j.model.openai.OpenAiTokenizer;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.TokenCountEstimator;
+import dev.langchain4j.model.openai.OpenAiChatModelName;
+import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,7 @@ public class LlmService {
 
     public LlmServiceResponse llmCall(String sessionID, String question, List<ScoredChunk> chunks) {
 
-        OpenAiTokenizer tokenizer = new OpenAiTokenizer();
+         TokenCountEstimator tokenizer = new OpenAiTokenCountEstimator(OpenAiChatModelName.GPT_4);
         StringBuilder context = new StringBuilder();
         int currentTokenCount = 0;
         for(int i = 0; i< chunks.size(); i++) {
@@ -53,9 +52,9 @@ public class LlmService {
         }
 
         String prompt = """ 
-            You are a code assistant. You will be given code snippets as context.
-            Answer the question clearly and concisely based only on the provided context.
-            If context not provided then say "I don't have answer. May be question is not from the Repo.".
+            You are a code assistant.
+            Use chat history when the user refers to previous messages.
+            Use retrieved code chunks only for repository questions.
             
             - Use proper formatting.
             - Explain code in plain English.

@@ -1,12 +1,8 @@
 package com.example.query_service.config;
 
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
-import dev.langchain4j.memory.chat.TokenWindowChatMemory;
-import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiTokenizer;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +15,7 @@ public class ChatModelConfig {
     private final RedisChatMemory redisChatMemory;
 
     @Bean
-    public ChatLanguageModel chatLanguageModel(
+    public OpenAiChatModel chatLanguageModel(
             @Value("${groq.baseurl}")
             String url,
             @Value("${groq.api.key}")
@@ -41,16 +37,16 @@ public class ChatModelConfig {
 
     @Bean
     public ChatAssistant chatAssistant(
-            ChatLanguageModel chatLanguageModel
+            OpenAiChatModel chatLanguageModel
     ){
         return AiServices.builder(ChatAssistant.class)
-                .chatLanguageModel(chatLanguageModel)
+                .chatModel(chatLanguageModel)
                 .chatMemoryProvider(memoryID ->
                                 MessageWindowChatMemory
                                 .builder()
                                 .id(memoryID)
                                 .chatMemoryStore(redisChatMemory)
-                                        .maxMessages(5)
+                                .maxMessages(5)
                                 .build()
                 )
                 .build();

@@ -7,6 +7,8 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.openai.OpenAiChatModelName;
+import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,17 +29,19 @@ public class RedisChatMemory implements ChatMemoryStore {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
+    private final int MAX_CACHE_TOKEN_SIZE = 2000;
+
     @Override
     public List<ChatMessage> getMessages(Object memoryID) {
 
         String redisKey = memoryKey((String) memoryID);
         String stored = redisTemplate.opsForValue().get(redisKey);
 
-        log.info("Loading memory: {}", memoryID);
-        log.info("Stored value: {}", stored);
+//        log.info("Loading memory: {}", memoryID);
+//        log.info("Stored value: {}", stored);
 
         if(stored == null || stored.isBlank()){
-            log.info("Returning EMPTY memory");
+//            log.info("Returning EMPTY memory");
             return new ArrayList<>();
         }
 
@@ -58,6 +62,12 @@ public class RedisChatMemory implements ChatMemoryStore {
     @Override
     public void updateMessages(Object memoryID, List<ChatMessage> list) {
         String redisKey = memoryKey((String) memoryID);
+        OpenAiTokenCountEstimator tokenizer = new OpenAiTokenCountEstimator(OpenAiChatModelName.GPT_4);
+
+        while(tokenizer.estimateTokenCountInMessages(list) > MAX_CACHE_TOKEN_SIZE && !list.isEmpty()) {
+            log.info("#######################################\nToekn Size: {} \n Chunk Removed : {} \n#######################################", tokenizer.estimateTokenCountInMessages(list),list.get(0));
+            list.remove(0);
+        }
 
         List<Map<String, String>> map = list.stream()
                 .map(this::fromMessage)
@@ -91,7 +101,18 @@ public class RedisChatMemory implements ChatMemoryStore {
 
     private Map<String, String> fromMessage(ChatMessage message) {
         String type = message.type().name();
-        String text = message.text();
+        String text = "";
+
+        if(message instanceof UserMessage){
+            text = ((UserMessage) message).singleText();
+            text = text.substring(text.lastIndexOf("QUESTION:"));
+        }else if(message instanceof  AiMessage){
+            text = ((AiMessage) message).text();
+        }else if(message instanceof SystemMessage){
+            text = ((SystemMessage) message).text();
+        }
+
+        log.info("-------------------------------------\nTEXT : \n{}\n-------------------------------------", text);
 
         return Map.of(
                 "type" , type,
