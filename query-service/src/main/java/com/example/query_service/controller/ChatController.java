@@ -33,10 +33,10 @@ public class ChatController {
     @GetMapping(value="stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chatStream(@RequestParam String question,
                                  @RequestParam String namespace,
-                                 @RequestHeader("X-Session-Id") String sessionID) throws ExecutionException, InterruptedException {
+                                 @RequestHeader(value = "X-Session-Id", required = false) String sessionID) throws ExecutionException, InterruptedException {
 
         SseEmitter emitter = new SseEmitter();
-        TokenStream stream = chatStreamService.chatStream(sessionID, question, namespace);
+        TokenStream stream = chatStreamService.chatStream("abc123", question, namespace);
         StringBuilder answer = new StringBuilder();
 
         stream.onPartialResponse(token -> {
