@@ -107,6 +107,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
     networks: [coderag]
     restart: on-failure
 
