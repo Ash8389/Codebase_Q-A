@@ -1,7 +1,5 @@
 services:
-  # ═══════════════════════════════════════
   # INFRASTRUCTURE
-  # ═══════════════════════════════════════
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -37,19 +35,13 @@ services:
     image: apache/kafka:3.9.1
     container_name: kafka
     ports:
-      - "9093:9093" # host machine connects on 9093
-        # containers connect on 9092 (internal only)
+      - "9093:9093"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
 
-      # TWO listeners:
-      # PLAINTEXT  → for Spring Boot containers inside Docker network (port 9092)
-      # EXTERNAL   → for your host machine / Kafka UI (port 9093)
-      # CONTROLLER → for KRaft leader election (port 9094)
       KAFKA_LISTENERS: PLAINTEXT://:9092,EXTERNAL://:9093,CONTROLLER://:9094
 
-      # What each client is told to connect to after initial contact
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9093
 
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
@@ -76,14 +68,12 @@ services:
       timeout: 10s
       retries: 10
 
-  # ═══════════════════════════════════════
   # APPLICATION SERVICES
-  # ═══════════════════════════════════════
 
   api-gateway:
-#    build:
-#      context: .
-#      dockerfile: api-Gateway/Dockerfile
+    #    build:
+    #      context: .
+    #      dockerfile: api-Gateway/Dockerfile
     image: ash270/coderag-api-gateway:latest
     container_name: api-gateway
     ports:
@@ -99,16 +89,18 @@ services:
     # it just routes requests to downstream services
 
   ingestion-service:
-#    build:
-#      context: .
-#      dockerfile: ingestion-service/Dockerfile
+    #    build:
+    #      context: .
+    #      dockerfile: ingestion-service/Dockerfile
     image: ash270/coderag-ingestion-service:latest
     container_name: ingestion-service
     ports:
       - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-local}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092 # ← service name, not localhost
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6334
       # JWT_SECRET: ${JWT_SECRET}
     #    tmpfs:
     #      - /tmp/coderag:size=512m
@@ -119,9 +111,9 @@ services:
     restart: on-failure
 
   embedding-service:
-#    build:
-#      context: .
-#      dockerfile: embedding-service/Dockerfile
+    #    build:
+    #      context: .
+    #      dockerfile: embedding-service/Dockerfile
     image: ash270/coderag-embedding-service:latest
     container_name: embedding-service
     ports:
@@ -129,7 +121,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-local}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      QDRANT_HOST: qdrant # ← service name, not localhost
+      QDRANT_HOST: qdrant
       QDRANT_PORT: 6334
       JINA_API_KEY: ${JINA_API_KEY:-}
     depends_on:
@@ -141,9 +133,9 @@ services:
     restart: on-failure
 
   query-service:
-#    build:
-#      context: .
-#      dockerfile: query-service/Dockerfile
+    #    build:
+    #      context: .
+    #      dockerfile: query-service/Dockerfile
     image: ash270/coderag-query-service:latest
     container_name: query-service
     ports:
@@ -152,7 +144,7 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-local}
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6334
-      SPRING_DATA_REDIS_HOST: rag-redis # ← matches container_name
+      SPRING_DATA_REDIS_HOST: rag-redis
       SPRING_DATA_REDIS_PORT: 6379
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       JINA_API_KEY: ${JINA_API_KEY:-}
@@ -164,9 +156,7 @@ services:
     networks: [coderag]
     restart: on-failure
 
-# ═══════════════════════════════════════
 # NETWORKS & VOLUMES
-# ═══════════════════════════════════════
 
 networks:
   coderag:
