@@ -13,8 +13,10 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin(
-                "https://codebase-q-a-frontend.vercel.app"
+        config.addAllowedOrigin(List.of(
+                "https://codebase-q-a-frontend.vercel.app",
+                "https://codebase-q-a-frontend-streaming.vercel.app/"
+            )
         );
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
