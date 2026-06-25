@@ -1,257 +1,182 @@
 # Codebase Q&A
 
-A **Retrieval-Augmented Generation (RAG)** system that lets you ask natural-language questions about any codebase. Built with Java Spring Boot microservices, it ingests source code, generates vector embeddings, stores them in Qdrant, and answers queries using semantic search — all wired together via Apache Kafka and cached with Redis.
+> AI-powered **Retrieval-Augmented Generation (RAG)** system for natural-language Q&A over any codebase.  
+> Ingest a GitHub repository, vectorize its source code, and ask questions in plain English.
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Try%20It%20Now-brightgreen?style=for-the-badge)](https://codebase-q-a-frontend.vercel.app/)
 
 ---
 
-## Table of Contents
+## Try It Live
 
-- [Architecture Overview](#architecture-overview)
-- [Services](#services)
-- [Tech Stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Infrastructure Setup](#infrastructure-setup)
-- [Project Structure](#project-structure)
-- [How It Works](#how-it-works)
-- [API Reference](#api-reference)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
+**No setup required.** Experience the app instantly at:
+
+### [codebase-q-a-frontend.vercel.app](https://codebase-q-a-frontend.vercel.app/)
+
+Paste any public GitHub repository URL, wait for ingestion, and start asking questions about the codebase in natural language.
 
 ---
 
-## Architecture Overview
+## Overview
 
-```
-User Query
-    │
-    ▼
-┌─────────────────────┐
-│   API Gateway        │  ← Single entry point for all client requests
-│   (port: varies)    │
-└─────────┬───────────┘
-          │
-    ┌─────┴──────┐
-    ▼            ▼
-┌──────────┐  ┌──────────────┐
-│  Ingest  │  │    Query     │
-│  Service │  │   Service    │
-└────┬─────┘  └──────┬───────┘
-     │               │
-     ▼               ▼
-  Kafka           Redis (cache)
-     │               │
-     ▼               ▼
-┌──────────────────────────┐
-│    Embedding Service     │
-│  (vector generation)     │
-└──────────────┬───────────┘
-               │
-               ▼
-        ┌─────────────┐
-        │   Qdrant    │  ← Vector database (REST: 6333, gRPC: 6334)
-        └─────────────┘
-```
+**Codebase Q&A** is a microservices-based platform that lets you chat with your code. It clones a repository, chunks the source files, generates vector embeddings, and stores them in a high-performance vector database. When you ask a question, it performs semantic search to retrieve the most relevant code snippets and synthesizes a contextual answer.
+
+![Architecture Diagram](Codebase-qa-diagram.png)
 
 ---
 
-## Services
+## Features
 
-### `apiGatewayService`
-The single entry point for all client-facing requests. Routes incoming HTTP requests to the appropriate downstream microservice (ingest or query). Handles cross-cutting concerns such as authentication, rate limiting, and request routing.
+- **One-Click Ingestion** — Submit a GitHub URL and the system automatically clones, chunks, and vectorizes the codebase.
+- **Semantic Search** — Ask natural-language questions; the system retrieves the most relevant code chunks via vector similarity.
+- **Asynchronous Processing** — Kafka decouples ingestion from embedding generation for reliable, scalable pipelines.
+- **Response Caching** — Redis caches frequent queries to reduce latency and LLM costs.
+- **Microservices Architecture** — Each concern is isolated in its own Spring Boot service for independent scaling and deployment.
+- **Live Frontend** — A deployed web interface at [codebase-q-a-frontend.vercel.app](https://codebase-q-a-frontend.vercel.app/) for instant access.
 
-### `ingest_service`
-Accepts a GitHub repository URL or source files, clones/reads the codebase, chunks the source files, and publishes chunked content to a Kafka topic for asynchronous downstream processing.
+---
 
-### `embedding_Service`
-Consumes code chunks from Kafka, generates vector embeddings using a language model, and upserts the resulting vectors into the Qdrant vector database for persistent storage.
+## Architecture
 
-### `query-service`
-Handles natural-language Q&A requests. Embeds the user's question, performs a vector similarity search against Qdrant to retrieve the most relevant code chunks, and synthesizes a contextual answer.
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Gateway** | Spring Boot | Single entry point, routing, auth, rate limiting |
+| **Ingest** | Spring Boot | Clone repos, chunk source files, publish to Kafka |
+| **Embedding** | Spring Boot | Consume chunks, generate vectors via LLM, upsert to Qdrant |
+| **Query** | Spring Boot | Embed questions, search Qdrant, synthesize answers, cache in Redis |
+| **Message Broker** | Apache Kafka 3.9.1 (KRaft) | Async job queue between Ingest and Embedding |
+| **Vector DB** | Qdrant | Store and search high-dimensional embeddings |
+| **Cache** | Redis 7 | LRU cache for query responses |
+| **Frontend** | React (Vercel) | User-facing web interface |
+| **Shared Lib** | `common-dto` | Reusable DTOs and utilities across services |
 
-### `common-dto`
-A shared library module containing common Data Transfer Objects (DTOs), request/response models, and shared utilities used across all microservices.
+### Data Flow
+
+**Ingestion Pipeline**
+1. User submits a repository URL via the **Frontend** or **API Gateway**.
+2. The **Ingest Service** clones the repo and splits files into code chunks.
+3. Chunks are published to a **Kafka** topic.
+4. The **Embedding Service** consumes chunks, generates embeddings, and upserts them into **Qdrant**.
+
+**Query Pipeline**
+1. User submits a natural-language question via the **Frontend** or **API Gateway**.
+2. The **Query Service** checks **Redis** for a cached response.
+3. On cache miss, the question is embedded and a **vector similarity search** is run against **Qdrant**.
+4. Top-k relevant code chunks are retrieved and used to synthesize an answer.
+5. The result is cached in **Redis** and returned to the user.
 
 ---
 
 ## Tech Stack
 
 | Category | Technology |
-|---|---|
-| Language | Java |
+|----------|------------|
+| Language | Java 17+ |
 | Framework | Spring Boot |
-| Message Broker | Apache Kafka 3.9.1 |
-| Vector Database | Qdrant (latest) |
-| Cache | Redis 7 (Alpine) |
-| Containerization | Docker / Docker Compose |
 | Build Tool | Maven / Gradle |
+| Message Broker | Apache Kafka 3.9.1 (KRaft mode) |
+| Vector Database | Qdrant |
+| Cache | Redis 7 (Alpine) |
+| Containerization | Docker & Docker Compose |
+| Frontend | React (deployed on Vercel) |
 
 ---
 
-## Prerequisites
+## Prerequisites (For Local Development)
 
-- **Docker** and **Docker Compose** installed
-- **Java 17+** (or the version required by your Spring Boot version)
-- **Maven** or **Gradle** for building the services
+- [Docker](https://docs.docker.com/get-docker/) & Docker Compose
+- Java 17 or higher
+- Maven 3.9+ or Gradle 8+
+- (Optional) [Git](https://git-scm.com/) for cloning repos locally
 
 ---
 
 ## Getting Started
 
-### 1. Clone the repository
+### Quick Start — Try the Live App
+
+Visit **[codebase-q-a-frontend.vercel.app](https://codebase-q-a-frontend.vercel.app/)** and start using the app immediately — no installation needed.
+
+### Local Development
+
+#### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Ash8389/Codebase_Q-A.git
 cd Codebase_Q-A
 ```
 
-### 2. Start the infrastructure
-
-Spin up Qdrant, Redis, and Kafka using Docker Compose:
+#### 2. Start infrastructure services
 
 ```bash
 docker compose up -d
 ```
 
-This starts:
-- **Qdrant** on ports `6333` (REST) and `6334` (gRPC) with persistent storage
-- **Redis** on port `6379` with a 256 MB LRU memory cap
-- **Kafka** on port `9092` in KRaft mode (no Zookeeper required)
+This brings up:
 
-### 3. Build the services
+| Service | Port | Description |
+|---------|------|-------------|
+| **Qdrant** | `6333` (REST), `6334` (gRPC) | Vector database with persistent storage |
+| **Redis** | `6379` | LRU cache capped at 256 MB |
+| **Kafka** | `9092` | KRaft-mode broker (no Zookeeper) |
 
-Build all microservices from their respective directories:
-
-```bash
-# Example for ingest service
-cd ingest_service/ingest_service
-./mvnw clean install
-
-# Repeat for each service:
-# apiGatewayService/apiGatewayService
-# embedding_Service/embedding_Service
-# query-service/query-service
-```
-
-### 4. Run the services
-
-Start each microservice in the correct order:
-
-```bash
-# 1. Start the embedding service first (Kafka consumer)
-# 2. Start the ingest service
-# 3. Start the query service
-# 4. Start the API gateway
-```
-
----
-
-## Infrastructure Setup
-
-The `docker-compose.yml` defines three infrastructure services:
-
-### Qdrant (Vector Database)
-```yaml
-ports:
-  - "6333:6333"   # REST API
-  - "6334:6334"   # gRPC API
-volumes:
-  - qdrant_data:/qdrant/storage   # Persistent storage
-```
-
-### Redis (Cache)
-```yaml
-ports:
-  - "6379:6379"
-command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
-```
-
-### Kafka (Message Broker — KRaft mode)
-```yaml
-ports:
-  - "9092:9092"
-# Runs as both broker and controller (no Zookeeper needed)
-```
-
-To verify all containers are healthy:
+Verify health:
 
 ```bash
 docker compose ps
 ```
 
----
+#### 3. Build all microservices
 
-## Project Structure
+```bash
+# API Gateway
+cd apiGatewayService/apiGatewayService
+./mvnw clean install
 
-```
-Codebase_Q-A/
-├── docker-compose.yml                          # Infrastructure services
-├── common-dto/                                 # Shared DTOs and models
-├── apiGatewayService/
-│   └── apiGatewayService/                      # API Gateway Spring Boot app
-├── ingest_service/
-│   └── ingest_service/                         # Code ingestion service
-├── embedding_Service/
-│   └── embedding_Service/                      # Embedding generation service
-└── query-service/
-    └── query-service/                          # Q&A query service
-```
+# Ingest Service
+cd ../../ingest_service/ingest_service
+./mvnw clean install
 
----
+# Embedding Service
+cd ../../embedding_Service/embedding_Service
+./mvnw clean install
 
-## How It Works
+# Query Service
+cd ../../query-service/query-service
+./mvnw clean install
 
-### Ingestion Pipeline
-
-1. **User submits** a repository URL or uploads source files via the API Gateway.
-2. The **Ingest Service** clones the repository and splits source files into meaningful code chunks.
-3. Chunks are published as messages to a **Kafka topic**.
-4. The **Embedding Service** consumes chunks from Kafka, generates vector embeddings, and upserts them into **Qdrant**.
-
-### Query Pipeline
-
-1. **User submits** a natural-language question via the API Gateway.
-2. The **Query Service** checks **Redis** for a cached response.
-3. On cache miss, the question is embedded and used to perform a **vector similarity search** in Qdrant.
-4. The top-k most relevant code chunks are retrieved and used to synthesize an answer.
-5. The result is **cached in Redis** and returned to the user.
-
----
-
-## API Reference
-
-All requests go through the API Gateway. Typical endpoints:
-
-### Ingest a Repository
-```
-POST /api/ingest
-Content-Type: application/json
-
-{
-  "repoUrl": "https://github.com/username/repository"
-}
+# Shared DTOs
+cd ../../common-dto
+./mvnw clean install
 ```
 
-### Ask a Question
-```
-POST /api/query
-Content-Type: application/json
+> **Tip:** If you have a multi-module Maven setup, you can build from the root with `mvn clean install`.
 
-{
-  "question": "How does the authentication flow work?"
-}
+#### 4. Run the services
+
+Start in the following order to ensure dependencies are ready:
+
+```bash
+# 1. Embedding Service (Kafka consumer must be up first)
+# 2. Ingest Service
+# 3. Query Service
+# 4. API Gateway (last)
 ```
 
-> Exact endpoint paths depend on the gateway routing configuration in `apiGatewayService`.
+Each service can be started with:
+
+```bash
+./mvnw spring-boot:run
+```
 
 ---
 
 ## Configuration
 
-Each service uses Spring Boot `application.properties` / `application.yml`. Key properties to configure:
+Each service uses `application.properties` or `application.yml`. Key properties:
 
 | Property | Description | Default |
-|---|---|---|
+|----------|-------------|---------|
 | `qdrant.host` | Qdrant server host | `localhost` |
 | `qdrant.port` | Qdrant gRPC port | `6334` |
 | `spring.kafka.bootstrap-servers` | Kafka broker address | `localhost:9092` |
@@ -260,18 +185,92 @@ Each service uses Spring Boot `application.properties` / `application.yml`. Key 
 
 ---
 
-## Contributing
+## API Reference
 
-Contributions are welcome! Please:
+All client requests go through the **API Gateway**.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m 'Add your feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
+### Ingest a Repository
+
+```http
+POST /api/ingest
+Content-Type: application/json
+
+{
+  "repoUrl": "https://github.com/username/repository"
+}
+```
+
+**Response:**
+
+```json
+{
+  "jobId": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "ACCEPTED",
+  "message": "Repository ingestion started."
+}
+```
+
+### Ask a Question
+
+```http
+POST /api/query
+Content-Type: application/json
+
+{
+  "question": "How does the authentication flow work?"
+}
+```
+
+**Response:**
+
+```json
+{
+  "answer": "The authentication flow is handled by the AuthFilter...",
+  "sources": [
+    "src/main/java/com/example/AuthFilter.java",
+    "src/main/java/com/example/SecurityConfig.java"
+  ],
+  "cached": false
+}
+```
+
+> **Note:** Exact endpoint paths may vary depending on your gateway routing configuration in `apiGatewayService`.
 
 ---
 
-## License
+## Project Structure
 
-This project is open source. See the repository for license details.
+```
+Codebase_Q-A/
+├── docker-compose.yml              # Infrastructure: Qdrant, Redis, Kafka
+├── common-dto/                     # Shared DTOs & models
+├── apiGatewayService/
+│   └── apiGatewayService/          # API Gateway Spring Boot app
+├── ingest_service/
+│   └── ingest_service/             # Code ingestion service
+├── embedding_Service/
+│   └── embedding_Service/          # Embedding generation service
+└── query-service/
+    └── query-service/              # Q&A query service
+```
+
+---
+
+## Roadmap
+
+- [x] Deployed live frontend for instant access
+- [ ] Add support for local file uploads (not just GitHub URLs)
+- [ ] Implement streaming responses for real-time Q&A
+- [ ] Add OAuth2 / JWT authentication
+- [ ] Multi-repo context switching
+- [ ] Support for additional vector DBs (Pinecone, Weaviate, Milvus)
+
+---
+
+## Acknowledgements
+
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [Apache Kafka](https://kafka.apache.org/)
+- [Qdrant](https://qdrant.tech/)
+- [Redis](https://redis.io/)
+- [Vercel](https://vercel.com/) — for frontend hosting
