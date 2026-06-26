@@ -16,7 +16,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin(
-                "https://codebase-q-a-frontend.vercel.app"
+                "https://codebaserag.ashishkjha.in"
         );
         config.addAllowedOrigin(
                 "https://codebase-q-a-frontend-streaming.vercel.app"
