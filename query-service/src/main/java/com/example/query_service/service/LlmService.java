@@ -28,6 +28,9 @@ public class LlmService {
          TokenCountEstimator tokenizer = new OpenAiTokenCountEstimator(OpenAiChatModelName.GPT_4);
         StringBuilder context = new StringBuilder();
         int currentTokenCount = 0;
+
+        log.info( "CHUNK SIZE: {}",chunks.size());
+
         for(int i = 0; i< chunks.size(); i++) {
             ScoredChunk c = chunks.get(i);
 
@@ -40,6 +43,7 @@ public class LlmService {
                     .append("-").append(c.endLine()).append("\n")
                     .append(c.content())
                     .append("\n\n");
+            log.info("CURRENT CHUNK: {}", currentChunk);
 
             int chunkToken = tokenizer.estimateTokenCountInText(String.valueOf(currentChunk));
             if(currentTokenCount + chunkToken > MAX_TOKEN) {
