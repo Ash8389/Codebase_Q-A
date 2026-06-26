@@ -19,16 +19,24 @@ import java.util.*;
 @Component
 public class JavaAstChunker implements CodeChunker{
 
-    private static Set<String> CHUNK_NODE_TYPES = Set.of(
+    private static Set<String> ALL_CHUNK_NODE_TYPES = Set.of(
             "method_declaration",
-            "constructor_declaration"
-    );
-
-    private static Set<String> FALLBACK_NODE_TYPES = Set.of(
+            "constructor_declaration",
             "class_declaration",
             "interface_declaration",
             "enum_declaration"
     );
+
+//    private static Set<String> CHUNK_NODE_TYPES = Set.of(
+//            "method_declaration",
+//            "constructor_declaration"
+//    );
+//
+//    private static Set<String> FALLBACK_NODE_TYPES = Set.of(
+//            "class_declaration",
+//            "interface_declaration",
+//            "enum_declaration"
+//    );
 
     private final DocumentChunker documentChunker;
 
@@ -44,9 +52,9 @@ public class JavaAstChunker implements CodeChunker{
         TSNode rootNode = tree.getRootNode();
 
         List<CodeChunk> chunks = new ArrayList<>();
-        collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, CHUNK_NODE_TYPES, "METHOD");
+        collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "METHOD");
 
-        collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, FALLBACK_NODE_TYPES, "CLASS");
+        collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "CLASS");
 
         if(chunks.isEmpty()) {
             System.out.println(filePath + " : " + content);

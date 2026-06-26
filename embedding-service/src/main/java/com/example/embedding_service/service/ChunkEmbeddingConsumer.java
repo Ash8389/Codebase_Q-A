@@ -38,7 +38,7 @@ public class ChunkEmbeddingConsumer {
 
         System.out.println("consumed-chunks size : " + chunkEvents.size());
 
-        Lists.partition(chunkEvents, BATCH_SIZE)
+        Lists.partition(chunkEvents, BATCH_SIZE).parallelStream()
             .forEach(this::qDrantEmbedAndStore);
     }
 
