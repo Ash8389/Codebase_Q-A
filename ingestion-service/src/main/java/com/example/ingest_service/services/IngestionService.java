@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -41,7 +42,7 @@ public class IngestionService {
         this.qdrantClient = qdrantClient;
     }
 
-    public String ingest(String uri) throws GitAPIException, IOException {
+    public String ingest(String uri) throws GitAPIException, IOException{
         if(!uri.contains(".git")) {
             uri = uri + ".git";
         }
@@ -86,7 +87,12 @@ public class IngestionService {
             });
 
         }
-        executor.shutdownNow();
+        executor.shutdown();
+        try{
+            executor.awaitTermination(1, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         executorService.submit(() -> FileSystemUtils.deleteRecursively(path.toFile()));
