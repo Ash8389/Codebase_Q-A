@@ -60,7 +60,7 @@ public class LlmService {
             - Explain code in plain English.
             - Use proper code for code reference.
             After your answer, on a new line write:
-            CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
+            CITATIONS: e.g. 1, 2...
             
             CODE CHUNKS:
             %s
