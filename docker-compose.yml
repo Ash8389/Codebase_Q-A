@@ -69,7 +69,7 @@ services:
       retries: 10
 
   # APPLICATION SERVICES
-
+/
   api-gateway:
     #    build:
     #      context: .

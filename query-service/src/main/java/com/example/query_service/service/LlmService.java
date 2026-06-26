@@ -58,7 +58,7 @@ public class LlmService {
             
             - Use proper formatting.
             - Explain code in plain English.
-            - Use code blocks for code reference.
+            - Use proper code for code reference.
             After your answer, on a new line write:
             CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
             
