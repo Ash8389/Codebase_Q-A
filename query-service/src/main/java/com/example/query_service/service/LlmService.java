@@ -56,20 +56,30 @@ public class LlmService {
         }
 
         String prompt = """ 
-            You are a code assistant.
-            Use chat history when the user refers to previous messages.
-            Use retrieved code chunks only for repository questions.
-            
-            - Use proper formatting.
-            - Explain code in plain English.
-            - Use proper code for code reference.
-            After your answer, on a new line write:
-            CITATIONS: e.g. 1, 2...
-            
-            CODE CHUNKS:
-            %s
-
-            QUESTION: %s
+                You are a code assistant.
+                
+                            Use chat history when the user refers to previous messages.
+                            Use retrieved code chunks only for repository questions.
+                
+                            Instructions:
+                            - Use proper Markdown formatting.
+                            - Explain code in plain English.
+                            - When referring to repository code, only use the provided code chunks.
+                            - At the very end of your response, output exactly one line in this format:
+                
+                            CITATIONS: <comma-separated chunk numbers>
+                
+                            Rules:
+                            - This must be the final line of the response.
+                            - Do not include brackets, periods, or extra text.
+                            - Example: CITATIONS: 2,5,8
+                            - If no code chunks were used, output: CITATIONS:
+                
+                            CODE CHUNKS:
+                            %s
+                
+                            QUESTION:
+                            %s
             """.formatted(context.toString(), question);
 
 //        log.debug("#################################\nPROMPT: {}\n#################################", prompt);
