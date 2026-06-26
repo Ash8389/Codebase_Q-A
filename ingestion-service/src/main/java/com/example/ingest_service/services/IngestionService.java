@@ -10,12 +10,15 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -46,41 +49,51 @@ public class IngestionService {
         Path path = pullRepoService.cloneRepo(uri);
         List<Path> supportedFiles = pullRepoService.supportedFiles(path);
 
-        String nameSpace = "";
 
-        for(Path filePath : supportedFiles) {
-            String contents = Files.readString(filePath, StandardCharsets.UTF_8);
-            String relativePath = path.relativize(filePath).toString();
-
-            nameSpace = uri.substring(uri.lastIndexOf('/') + 1, uri.lastIndexOf('.'));
-
-            List<CodeChunk> chunks = javaAstChunker.chunk(contents, relativePath, nameSpace);
-
-            List<CodeChunkEvent> chunkEvents = chunks.stream().map(
-                    c -> new CodeChunkEvent(
-                            c.chunkId(),
-                            c.namespace(),
-                            c.filePath(),
-                            c.startLine(),
-                            c.endLine(),
-                            c.chunkType(),
-                            c.content()
-                    )
-            ).toList();
-
-
-
-
-            log.info("{}---{}", filePath.getFileName(), chunks.size());
-            chunkEvents.forEach(kafkaServices::producer);
-
-        }
+        String nameSpace = uri.substring(uri.lastIndexOf('/') + 1, uri.lastIndexOf('.'));;
 
         deleteNamespaceExist(nameSpace);
 
-        FileSystemUtils.deleteRecursively(path.toFile());
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        for(Path filePath : supportedFiles) {
+
+            executor.submit( () -> {
+
+                try{
+                    String contents = Files.readString(filePath, StandardCharsets.UTF_8);
+                    String relativePath = path.relativize(filePath).toString();
+
+                    List<CodeChunk> chunks = javaAstChunker.chunk(contents, relativePath, nameSpace);
+
+                    List<CodeChunkEvent> chunkEvents = chunks.stream().map(
+                            c -> new CodeChunkEvent(
+                                    c.chunkId(),
+                                    c.namespace(),
+                                    c.filePath(),
+                                    c.startLine(),
+                                    c.endLine(),
+                                    c.chunkType(),
+                                    c.content()
+                            )
+                    ).toList();
+
+                    log.info("{}---{}", filePath.getFileName(), chunks.size());
+                    chunkEvents.forEach(kafkaServices::producer);
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+        }
+        executor.shutdownNow();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        executorService.submit(() -> FileSystemUtils.deleteRecursively(path.toFile()));
+        executorService.shutdown();
 
         return "Ingestion Done";
+
     }
 
     public void deleteNamespaceExist(String namespace){
