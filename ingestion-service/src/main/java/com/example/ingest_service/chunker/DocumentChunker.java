@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,23 +14,47 @@ public class DocumentChunker {
     private static final int OVERLAP_SIZE = 25;
 
     public List<CodeChunk> splitter(String content, String filename, String namespace) {
-        String[] words = content.split("\\s+");
+        String[] lines= content.split("\\R");
 
         List<CodeChunk> chunks = new ArrayList<>();
 
-        int lineCounter = 1;
-        int i = 0;
+        int startLine = 1;
+        int wordCount = 0;
+        StringBuilder chunkText= new StringBuilder();
 
-        while(i < words.length) {
-            int end = Math.min(words.length, i+CHUNK_WORD_SIZE);
-            String chunkText = String.join(" ", Arrays.copyOfRange(words, i, end));
+        for(int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            int wordsInLine = line.isBlank() ? 0 : line.trim().split("\\s+").length;
 
-            int startLine = lineCounter;
-            int totalLines = (int) chunkText.chars().filter(c -> c ==  '\n' ).count();
-            int endLine = startLine+totalLines;
+            if(wordCount + wordsInLine > CHUNK_WORD_SIZE && !chunkText.isEmpty()) {
+                int endLine = i;
+                String chunkId = uuid(chunkText+filename+namespace);
 
+                chunks.add(
+                        CodeChunk.builder()
+                                .chunkId(chunkId)
+                                .namespace(namespace)
+                                .filePath(filename)
+                                .startLine(startLine)
+                                .endLine(endLine)
+                                .chunkType(filename.substring(filename.lastIndexOf('.')))
+                                .content(chunkText.toString())
+                                .build()
+                );
+
+
+                chunkText.setLength(0);
+                startLine = i+1;
+                wordCount = 0;
+            }
+
+            wordCount += wordsInLine;
+            chunkText.append(line).append("\n");
+        }
+
+        if(!chunkText.isEmpty()) {
+            int endLine = lines.length;
             String chunkId = uuid(chunkText+filename+namespace);
-
             chunks.add(
                     CodeChunk.builder()
                             .chunkId(chunkId)
@@ -40,12 +63,10 @@ public class DocumentChunker {
                             .startLine(startLine)
                             .endLine(endLine)
                             .chunkType(filename.substring(filename.lastIndexOf('.')))
-                            .content(chunkText)
+                            .content(chunkText.toString())
                             .build()
             );
 
-            lineCounter = endLine;
-            i = i + CHUNK_WORD_SIZE - OVERLAP_SIZE;
         }
 
         return chunks;
@@ -54,4 +75,5 @@ public class DocumentChunker {
     private String uuid(String input) {
         return UUID.nameUUIDFromBytes(input.getBytes(StandardCharsets.UTF_8)).toString();
     }
+
 }

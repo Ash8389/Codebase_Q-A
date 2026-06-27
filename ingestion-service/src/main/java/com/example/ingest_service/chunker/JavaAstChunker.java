@@ -19,24 +19,24 @@ import java.util.*;
 @Component
 public class JavaAstChunker implements CodeChunker{
 
-    private static Set<String> ALL_CHUNK_NODE_TYPES = Set.of(
-            "method_declaration",
-            "constructor_declaration",
-            "class_declaration",
-            "interface_declaration",
-            "enum_declaration"
-    );
-
-//    private static Set<String> CHUNK_NODE_TYPES = Set.of(
+//    private static Set<String> ALL_CHUNK_NODE_TYPES = Set.of(
 //            "method_declaration",
-//            "constructor_declaration"
-//    );
-//
-//    private static Set<String> FALLBACK_NODE_TYPES = Set.of(
+//            "constructor_declaration",
 //            "class_declaration",
 //            "interface_declaration",
 //            "enum_declaration"
 //    );
+
+    private static Set<String> CHUNK_NODE_TYPES = Set.of(
+            "method_declaration",
+            "constructor_declaration"
+    );
+
+    private static Set<String> FALLBACK_NODE_TYPES = Set.of(
+            "class_declaration",
+            "interface_declaration",
+            "enum_declaration"
+    );
 
     private final DocumentChunker documentChunker;
 
@@ -52,8 +52,11 @@ public class JavaAstChunker implements CodeChunker{
         TSNode rootNode = tree.getRootNode();
 
         List<CodeChunk> chunks = new ArrayList<>();
-        if(!filePath.endsWith(".md")) {
-            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES);
+        if(!filePath.contains(".md")) {
+            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, CHUNK_NODE_TYPES, "METHOD");
+
+            if(chunks.isEmpty())
+                collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, FALLBACK_NODE_TYPES, "CLASS");
         }else{
             log.info("$$$$$$$$$$$$$$$$$$$$$$$$\n README : {} \n$$$$$$$$$$$$$$$$$$$$$$$$$$", filePath);
             return fallbackToSlidingWindow(content, filePath, nameSpace);
@@ -71,24 +74,9 @@ public class JavaAstChunker implements CodeChunker{
     private void collectChunks(TSNode node, byte[] sourceBytes,
                                String filePath, String namespace,
                                List<CodeChunk> result,
-                               Set<String> targetTypes) {
+                               Set<String> targetTypes, String chunkType) {
 
-        String chunkType = null;
-
-        switch (node.getType()){
-            case "method_declaration":
-            case "constructor_declaration":
-                chunkType = "METHOD";
-                break;
-
-            case "class_declaration":
-            case "interface_declaration":
-            case "enum_declaration":
-                chunkType = "CLASS";
-                break;
-        }
-
-        if(chunkType != null) {
+        if(targetTypes.contains(node.getType())) {
 
             int start = node.getStartByte();
             int end = node.getEndByte();
@@ -131,7 +119,7 @@ public class JavaAstChunker implements CodeChunker{
 
         for (int i = 0; i < node.getChildCount(); i++) {
             collectChunks(node.getChild(i), sourceBytes, filePath,
-                    namespace, result, targetTypes);
+                    namespace, result, targetTypes, chunkType);
         }
     }
 
