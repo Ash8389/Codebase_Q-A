@@ -52,12 +52,11 @@ public class JavaAstChunker implements CodeChunker{
         TSNode rootNode = tree.getRootNode();
 
         List<CodeChunk> chunks = new ArrayList<>();
-        collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "METHOD");
-
-        collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "CLASS");
-
-        if(chunks.isEmpty()) {
-            System.out.println(filePath + " : " + content);
+        if(!filePath.contains(".md")) {
+            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "METHOD");
+            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "CLASS");
+        }else{
+            log.info("$$$$$$$$$$$$$$$$$$$$$$$$\n README : {} \n$$$$$$$$$$$$$$$$$$$$$$$$$$", filePath);
             return fallbackToSlidingWindow(content, filePath, nameSpace);
         }
 
