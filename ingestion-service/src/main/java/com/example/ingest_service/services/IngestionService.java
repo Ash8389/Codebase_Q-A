@@ -10,16 +10,17 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -49,6 +50,12 @@ public class IngestionService {
 
         Path path = pullRepoService.cloneRepo(uri);
         List<Path> supportedFiles = pullRepoService.supportedFiles(path);
+
+         boolean hasJava = supportedFiles.stream()
+                 .anyMatch(fp -> fp.toString().endsWith(".java"));
+         if(!hasJava) {
+             return "Currently only Java repositories are supported.";
+         }
 
 
         String nameSpace = uri.substring(uri.lastIndexOf('/') + 1, uri.lastIndexOf('.'));;
