@@ -3,6 +3,7 @@ package com.example.ingest_service.services;
 import com.example.common_dto.CodeChunkEvent;
 import com.example.ingest_service.chunker.JavaAstChunker;
 import com.example.ingest_service.dtos.CodeChunk;
+import com.example.ingest_service.dtos.ServiceResponse;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.grpc.Points;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ public class IngestionService {
         this.qdrantClient = qdrantClient;
     }
 
-    public String ingest(String uri) throws GitAPIException, IOException{
+    public ServiceResponse ingest(String uri) throws GitAPIException, IOException{
         if(!uri.contains(".git")) {
             uri = uri + ".git";
         }
@@ -54,7 +55,7 @@ public class IngestionService {
          boolean hasJava = supportedFiles.stream()
                  .anyMatch(fp -> fp.toString().endsWith(".java"));
          if(!hasJava) {
-             return "Currently only Java repositories are supported.";
+             return new ServiceResponse("Currently only Java repositories are supported.",false);
          }
 
 
@@ -105,7 +106,7 @@ public class IngestionService {
         executorService.submit(() -> FileSystemUtils.deleteRecursively(path.toFile()));
         executorService.shutdown();
 
-        return "Ingestion Done";
+        return new ServiceResponse("Ingestion Done", true);
 
     }
 

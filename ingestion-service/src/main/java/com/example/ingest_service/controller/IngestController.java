@@ -1,5 +1,6 @@
 package com.example.ingest_service.controller;
 
+import com.example.ingest_service.dtos.ServiceResponse;
 import com.example.ingest_service.services.IngestionService;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,12 @@ public class IngestController {
 
     @PostMapping("uri")
     public ResponseEntity<String> ingest(@RequestParam("q") String uri) throws GitAPIException, IOException {
-        return ResponseEntity.ok(ingestionService.ingest(uri));
+        ServiceResponse response = ingestionService.ingest(uri);
+
+        if(response.ingested()){
+            return ResponseEntity.ok(response.msg());
+        }
+
+        return ResponseEntity.badRequest().body(response.msg());
     }
 }
