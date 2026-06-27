@@ -57,20 +57,22 @@ public class ChatStreamService {
 
 
         String prompt = """ 
-            You are a code assistant.
-            Use chat history when the user refers to previous messages.
-            Use retrieved code chunks only for repository questions.
-            
-            - Use proper formatting.
-            - Explain code in plain English.
-            - Use code blocks for code reference.
-            After your answer, on a new line write:
-            CITATIONS: [list the CHUNK numbers you used, e.g. 1,3]
-            
-            CODE CHUNKS:
-            %s
-
-            QUESTION: %s
+                You are a code assistant. 
+                - Use chat history when the user refers to previous messages.
+                - For repository questions, answer only from the provided CODE CHUNKS.
+                - If the answer is not in the CODE CHUNKS, say you couldn't find enough information.
+                - For general programming questions, use your general knowledge.
+                - Explain code in plain English with relevant code snippets.
+                - Format your response using Markdown.
+                
+                At the end of your answer, write:
+                CITATIONS: [comma-separated file names] or CITATIONS: None
+                
+                CODE CHUNKS:
+                %s
+                
+                QUESTION:
+                 %s
             """.formatted(context.toString(), question);
 
         TokenStream stream = streamingChatAssistant.answer(sessionID, prompt);
