@@ -52,9 +52,8 @@ public class JavaAstChunker implements CodeChunker{
         TSNode rootNode = tree.getRootNode();
 
         List<CodeChunk> chunks = new ArrayList<>();
-        if(!filePath.contains(".md")) {
-            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "METHOD");
-            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES, "CLASS");
+        if(!filePath.endsWith(".md")) {
+            collectChunks(rootNode, sourceBytes, filePath, nameSpace, chunks, ALL_CHUNK_NODE_TYPES);
         }else{
             log.info("$$$$$$$$$$$$$$$$$$$$$$$$\n README : {} \n$$$$$$$$$$$$$$$$$$$$$$$$$$", filePath);
             return fallbackToSlidingWindow(content, filePath, nameSpace);
@@ -72,9 +71,24 @@ public class JavaAstChunker implements CodeChunker{
     private void collectChunks(TSNode node, byte[] sourceBytes,
                                String filePath, String namespace,
                                List<CodeChunk> result,
-                               Set<String> targetTypes, String chunkType) {
+                               Set<String> targetTypes) {
 
-        if(targetTypes.contains(node.getType())) {
+        String chunkType = null;
+
+        switch (node.getType()){
+            case "method_declaration":
+            case "constructor_declaration":
+                chunkType = "METHOD";
+                break;
+
+            case "class_declaration":
+            case "interface_declaration":
+            case "enum_declaration":
+                chunkType = "CLASS";
+                break;
+        }
+
+        if(chunkType != null) {
 
             int start = node.getStartByte();
             int end = node.getEndByte();
@@ -117,7 +131,7 @@ public class JavaAstChunker implements CodeChunker{
 
         for (int i = 0; i < node.getChildCount(); i++) {
             collectChunks(node.getChild(i), sourceBytes, filePath,
-                    namespace, result, targetTypes, chunkType);
+                    namespace, result, targetTypes);
         }
     }
 
